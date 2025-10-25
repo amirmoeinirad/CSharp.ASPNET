@@ -1,8 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using MyApp.Web.Models;
+using MyApp.Domain.Models;
+
 using NodaTime;
 
-namespace MyApp.Web.Data
+namespace MyApp.Infrastructure.Data
 {
     public class ApplicationDbContext : DbContext
     {

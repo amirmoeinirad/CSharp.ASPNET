@@ -1,6 +1,6 @@
 ﻿using NodaTime;
 
-namespace MyApp.Web.Models
+namespace MyApp.Domain.Models
 {
     public class Person
     {
