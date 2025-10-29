@@ -12,7 +12,7 @@ namespace MyApp.Application.Interfaces
         Task<Person?> Get(int id);
 
         // Get all people in the database
-        Task<List<Person>> GetAll();
+        Task<List<Person>> GetAllPeople();
 
         // Add a new person to the database
         Task Add(Person p);

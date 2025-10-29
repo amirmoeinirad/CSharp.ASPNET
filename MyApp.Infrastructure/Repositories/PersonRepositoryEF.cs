@@ -23,7 +23,7 @@ public class PersonRepositoryEF : IPersonRepository
     // Returns a Task that resolves to a List of Person
     // Since ToListAsync() returns a Task directly, we can return it without 'async' and 'await'.
     // This is more efficient.
-    public Task<List<Person>> GetAll() => _db.People.ToListAsync();
+    public Task<List<Person>> GetAllPeople() => _db.People.ToListAsync();
 
 
     // Add a new person to the database
