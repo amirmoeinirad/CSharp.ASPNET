@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using MyApp.Application.Interfaces;
 using MyApp.Infrastructure.Data;
 using NodaTime;
 using RabbitMQ.Client;
@@ -41,6 +42,29 @@ namespace MyApp.Web
             builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 
 
+            // AUTOFAC REGISTRATIONS
+            // The ConfigureContainer<>() method is used to configure the Autofac container.
+            // This method is part of .NET's generic host builder.
+            // The ContainerBuilder class is provided by Autofac and is used to register services.
+            builder.Host.ConfigureContainer<ContainerBuilder>(containerBuilder =>
+            {
+                // Here, we are registering two implementations of IPersonRepository in the Autofac container.
+                // We are not using the default ASP.NET IServiceCollection registrations for these repositories.
+                // (1)
+                // PersonRepositoryEF is registered with InstancePerLifetimeScope(),
+                // which means a new instance will be created for each lifetime scope.
+                // In web applications, a lifetime scope typically corresponds to a single HTTP request.
+                containerBuilder.RegisterType<PersonRepositoryEF>().As<IPersonRepository>().InstancePerLifetimeScope();
+                // (2)
+                // PersonRepositoryDapper is registered with InstancePerDependency(),
+                // which means a new instance will be created each time it is requested.
+                containerBuilder.RegisterType<PersonRepositoryDapper>().InstancePerDependency();
+
+                // RegisterType, InstancePerLifetimeScope and InstancePerDependency methods are
+                // all part of Autofac's API for configuring service lifetimes.
+            });
+
+
             // EF CORE
             // Add the ApplicationDbContext to the DI container.
             // This enables the use of Entity Framework Core for database operations.
@@ -75,6 +99,7 @@ namespace MyApp.Web
 
 
             // JWT AUTHENTICATION
+            // Authentication is the process of verifying the identity of a user or system.
             var jwt = configuration.GetSection("Jwt");
             // Convert the secret key string in configuration to a byte array.
             var key = Encoding.UTF8.GetBytes(jwt["Secret"] ?? "");
@@ -100,6 +125,18 @@ namespace MyApp.Web
                     ValidAudience = jwt["Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(key) // Use the secret key for signing the token.
                 };
+            });
+
+
+            // AUTHORIZATION
+            // Authorization is the process of determining what an authenticated user is allowed to do.
+            // Configure authorization policies.
+            // Here, we define a policy named "AdminOnly" that requires the user to have a claim "role" with the value "admin".
+            // 'role' must be defined when the JWT token is created.
+            // It is defined as a claim in the token payload.
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AdminOnly", policy => policy.RequireClaim("role", "admin"));
             });
 
 
@@ -168,18 +205,48 @@ namespace MyApp.Web
 
 
             // AUTHENTICATION
+            // Enable authentication capabilities.
+            app.UseAuthentication();
+
+
+            // AUTHORIZATION
             // Enable authorization capabilities.
             app.UseAuthorization();
 
 
             // STATIC FILES
-            // Serve static files from the wwwroot folder.
+            // Used in Minimal APIs or Blazor to map static assets explicitly to routes.
+            // Minimal API is a lightweight way to build HTTP APIs with ASP.NET Core.          
             app.MapStaticAssets();
+
+
+            // STATIC FILES
+            // Serve static files from the wwwroot folder for MVC apps.
+            app.UseStaticFiles();
 
 
             // ENDPOINTS
             // Map Razor Pages endpoints.
+            // This will allow the application to respond to requests for Razor Pages.
+            // Razor Pages are a page-based programming model for ASP.NET Core MVC.
             app.MapRazorPages().WithStaticAssets();
+
+
+            // MAP CONTROLLER ROUTE
+            // The MapControllerRoute method defines a route for MVC controllers.
+            // The route template "{controller=Home}/{action=Index}/{id?}" means:
+            // - "controller=Home": If no controller is specified in the URL, use "Home" as the default controller.
+            // - "action=Index": If no action is specified in the URL, use "Index" as the default action method.
+            // - "id?": The "id" parameter is optional (indicated by the "?").
+            // This is an example of a conventional routing pattern in ASP.NET Core MVC,
+            // not using attribute routing or a separate routing class or controller.
+            app.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
+
+
+            // MINIMAL API ENDPOINT
+            // Map a simple GET endpoint that returns a string.
+            // In minimal APIs, we don't use controllers.
+            app.MapGet("/hello", () => "Hello from Minimal API!");
 
 
             ///////////////
