@@ -34,6 +34,7 @@ namespace MyApp.Infrastructure.Data
 
         // METHODS ///////////////////////////////////
         // Apply auditing before saving changes to the database.
+        // Auditing means keeping track of who created or modified a record and when.
         // The return type is 'int' meaning the number of state entries written to the database.
         public override int SaveChanges()
         {
