@@ -4,3 +4,5 @@
 <b>Framework:</b> .NET 9.0 <br>
 <b>NuGet Packages:</b> <br>
 - <b>Autofac</b> (for Inversion of Control (IoC) and Dependency Injection(DI))
+
+The project is being developed and may not run.
