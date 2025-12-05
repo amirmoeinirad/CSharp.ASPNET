@@ -39,6 +39,10 @@ namespace MyApp.Web
             // Services are registered by default in the IServiceCollection interface.
             // But, when the application is built, Autofac will be used as the service provider.
             // Autofac will take over and integrate those registrations.
+            // 'UseServiceProviderFactory': This is a method that allows you to override the mechanism used to create
+            // the final 'IServiceProvider' (the service locator that resolves dependencies at runtime).
+            // 'AutofacServiceProviderFactory': This component acts as a bridge, taking all the service registrations
+            // made with the standard .NET 'IServiceCollection' and populating them into an Autofac ContainerBuilder.
             builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 
 
