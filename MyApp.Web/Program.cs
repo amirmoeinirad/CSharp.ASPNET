@@ -47,9 +47,11 @@ namespace MyApp.Web
 
 
             // AUTOFAC REGISTRATIONS
-            // The ConfigureContainer<>() method is used to configure the Autofac container.
+            // The ConfigureContainer<>() method is used to configure the the instantiated dependency injection container,
+            // in this case, Autofac.
             // This method is part of .NET's generic host builder.
-            // The ContainerBuilder class is provided by Autofac and is used to register services.
+            // The ContainerBuilder class is part of the Autofac library and is used to register services and their implementations.
+            // It builds an 'IContainer', which is the Autofac equivalent of 'IServiceProvider'.
             builder.Host.ConfigureContainer<ContainerBuilder>(containerBuilder =>
             {
                 // Here, we are registering two implementations of IPersonRepository in the Autofac container.
@@ -58,10 +60,19 @@ namespace MyApp.Web
                 // PersonRepositoryEF is registered with InstancePerLifetimeScope(),
                 // which means a new instance will be created for each lifetime scope.
                 // In web applications, a lifetime scope typically corresponds to a single HTTP request.
+                // 'InstancePerLifetimeScope' is similar to 'Scoped' lifetime in ASP.NET Core's built-in DI container.
+                // Why use InstancePerLifetimeScope for EF repository?
+                // Because Entity Framework Core's DbContext is designed to be used per request.
+                // Why not use a singleton service for DbContext?
+                // Because DbContext is not thread-safe and should not be shared across multiple requests.
+                // Sharing a DbContext instance across requests can lead to data corruption and unexpected behavior.
                 containerBuilder.RegisterType<PersonRepositoryEF>().As<IPersonRepository>().InstancePerLifetimeScope();
                 // (2)
                 // PersonRepositoryDapper is registered with InstancePerDependency(),
                 // which means a new instance will be created each time it is requested.
+                // 'InstancePerDependency' is similar to 'Transient' lifetime in ASP.NET Core's built-in DI container.
+                // Why use InstancePerDependency for Dapper repository?
+                // Because Dapper is a micro ORM that works directly with database connections.
                 containerBuilder.RegisterType<PersonRepositoryDapper>().InstancePerDependency();
 
                 // RegisterType, InstancePerLifetimeScope and InstancePerDependency methods are
